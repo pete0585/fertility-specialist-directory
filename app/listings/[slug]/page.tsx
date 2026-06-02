@@ -38,9 +38,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams() {
-  const slugs = await getAllListingSlugs()
-  return slugs.map((slug) => ({ slug }))
+  return []
 }
+export const dynamicParams = true
+export const revalidate = 3600
 
 export default async function ListingDetailPage({ params, searchParams }: PageProps) {
   const { slug } = await params

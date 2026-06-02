@@ -93,5 +93,6 @@ export async function getAllListingSlugs(): Promise<string[]> {
     .select('slug')
     .eq('is_approved', true)
     .eq('is_active', true)
+    .limit(1000)
   return (data ?? []).map((r: { slug: string }) => r.slug)
 }

@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
 
+export const revalidate = 3600
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://fertilityspecialistdirectory.com'
 
@@ -24,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('is_approved', true)
     .eq('is_active', true)
     .order('updated_at', { ascending: false })
+    .limit(1000)
 
   const listingUrls: MetadataRoute.Sitemap = (listings ?? []).map((l) => ({
     url: `${SITE_URL}/listings/${l.slug}`,
