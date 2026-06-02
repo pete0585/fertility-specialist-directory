@@ -62,13 +62,13 @@ export default function ClaimPage({ params, searchParams }: PageProps) {
               href={`/api/checkout?listing_id=${id}&tier=premium`}
               className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              Upgrade to Premium — $299/year
+              Upgrade to Premium — $499/year
             </a>
             <a
               href={`/api/checkout?listing_id=${id}&tier=featured`}
               className="block w-full bg-gold-400 hover:bg-gold-500 text-white font-semibold py-3 rounded-xl transition-colors"
             >
-              Upgrade to Featured — $499/year
+              Upgrade to Featured — $999/year
             </a>
           </div>
 
