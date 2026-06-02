@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight, MapPin, Star } from 'lucide-react'
 import { getListingsByCity } from '@/lib/data'
-import { ListingCard } from '@/components/ListingCard'
+import ListingCard from '@/components/ListingCard'
 
 export const metadata: Metadata = {
   title: 'Best Fertility Specialists in Houston, TX — Top-Rated IVF Doctors',
