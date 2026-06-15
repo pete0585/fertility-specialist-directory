@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { CheckCircle, Mail, ArrowRight } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -19,6 +20,23 @@ export default function ClaimPage({ params, searchParams }: PageProps) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(errorParam ?? '')
+  const [monthlyViews, setMonthlyViews] = useState(0)
+
+  useEffect(() => {
+    if (step !== 'upgrade') return
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+    supabase
+      .from('listing_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('directory_slug', 'fertility-specialist')
+      .eq('listing_id', id)
+      .gte('viewed_at', monthStart)
+      .then(({ count }) => setMonthlyViews(count ?? 0))
+  }, [step, id])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,30 +61,50 @@ export default function ClaimPage({ params, searchParams }: PageProps) {
 
   if (step === 'upgrade') {
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
         <div className="bg-white rounded-3xl border border-teal-200 shadow-lg p-10">
           <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle size={32} className="text-teal-500" />
           </div>
-          <h1 className="text-3xl font-serif font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl font-serif font-bold text-gray-900 mb-3 text-center">
             Listing Claimed!
           </h1>
-          <p className="text-gray-500 mb-8 leading-relaxed">
-            Your listing is now claimed. Upgrade to Premium or Featured to add your bio,
-            headshot, website, and treatment specialties — and get found by patients
-            actively searching for your services.
-          </p>
+
+          <div className='text-center mb-6'>
+            <div className='text-5xl font-bold text-gray-900'>{monthlyViews}</div>
+            <div className='text-gray-500 mt-1'>people viewed your profile this month</div>
+            <div className='mt-3 text-red-600 font-semibold'>
+              0 could contact you — your phone and website are hidden
+            </div>
+          </div>
+
+          <div className='space-y-3 mb-6 text-left'>
+            {[
+              ['Your phone number visible to searchers', 'They can call you directly from your listing'],
+              ['Your website linked', 'Drive traffic to your practice site'],
+              ['Your full bio displayed', 'Build trust before they reach out'],
+              ['Verified badge', 'Stand out from unclaimed profiles'],
+            ].map(([title, sub]) => (
+              <div key={title} className='flex items-start gap-3'>
+                <span className='text-green-500 text-lg leading-tight'>✓</span>
+                <div>
+                  <div className='font-medium text-gray-900'>{title}</div>
+                  <div className='text-sm text-gray-500'>{sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
 
           <div className="space-y-3 mb-6">
             <a
               href={`/api/checkout?listing_id=${id}&tier=premium`}
-              className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-xl transition-colors text-center"
             >
               Upgrade to Premium — $499/year
             </a>
             <a
               href={`/api/checkout?listing_id=${id}&tier=featured`}
-              className="block w-full bg-gold-400 hover:bg-gold-500 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="block w-full bg-gold-400 hover:bg-gold-500 text-white font-semibold py-3 rounded-xl transition-colors text-center"
             >
               Upgrade to Featured — $999/year
             </a>
@@ -74,7 +112,7 @@ export default function ClaimPage({ params, searchParams }: PageProps) {
 
           <Link
             href={`/listings/${id}`}
-            className="text-sm text-teal-500 hover:text-teal-600 font-medium"
+            className="block text-sm text-teal-500 hover:text-teal-600 font-medium text-center"
           >
             View my listing →
           </Link>

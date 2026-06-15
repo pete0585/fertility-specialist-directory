@@ -3,6 +3,12 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 
+const HANDLED_EVENTS = new Set([
+  'checkout.session.completed',
+  'customer.subscription.deleted',
+  'invoice.payment_failed',
+])
+
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const signature = req.headers.get('stripe-signature')
@@ -21,6 +27,10 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('Stripe webhook signature verification failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  if (!HANDLED_EVENTS.has(event.type)) {
+    return NextResponse.json({ received: true })
   }
 
   const supabase = await createServiceClient()
@@ -92,9 +102,6 @@ export async function POST(req: NextRequest) {
       console.warn('Payment failed for subscription:', invoice.subscription)
       break
     }
-
-    default:
-      break
   }
 
   return NextResponse.json({ received: true })

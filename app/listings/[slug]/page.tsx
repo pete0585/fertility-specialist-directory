@@ -9,6 +9,8 @@ import { getListingBySlug, getAllListingSlugs } from '@/lib/data'
 import { PROVIDER_TYPE_LABELS } from '@/lib/types'
 import { formatPhone } from '@/lib/utils'
 import { createCheckoutSession } from './actions'
+import { ViewTracker } from '@/components/ViewTracker'
+import { createServiceClient } from '@/lib/supabase/server'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -50,6 +52,20 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
   const listing = await getListingBySlug(slug)
   if (!listing) notFound()
 
+  const isClaimed = listing.listing_tier !== 'unclaimed' && listing.listing_tier != null
+  const isPaid = ['premium', 'featured', 'clinic'].includes(listing.listing_tier)
+  const isFeatured = ['featured', 'clinic'].includes(listing.listing_tier)
+
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+  const supabase = await createServiceClient()
+  const { count: viewCount } = await supabase
+    .from('listing_views')
+    .select('*', { count: 'exact', head: true })
+    .eq('directory_slug', 'fertility-specialist')
+    .eq('listing_id', String(listing.id))
+    .gte('viewed_at', monthStart)
+  const monthlyViews = viewCount ?? 0
+
   const typeLabel = PROVIDER_TYPE_LABELS[listing.provider_type] ?? listing.provider_type
 
   const jsonLd = {
@@ -80,9 +96,6 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
     }),
   }
 
-  const isPaid = ['premium', 'featured', 'clinic'].includes(listing.listing_tier)
-  const isFeatured = ['featured', 'clinic'].includes(listing.listing_tier)
-
   async function handleUpgrade(listingId: string, tier: string) {
     'use server'
     await createCheckoutSession(listingId, tier as 'premium' | 'featured' | 'clinic')
@@ -94,6 +107,8 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      <ViewTracker listingId={String(listing.id)} directorySlug='fertility-specialist' />
 
       {/* Upgrade success banner */}
       {verified === 'true' && (
@@ -211,8 +226,25 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
               </div>
             </div>
 
+            {/* Stats dashboard for claimed listings */}
+            {isClaimed && (
+              <div className='rounded-2xl border border-blue-200 bg-blue-50 p-4'>
+                <p className='text-xs font-semibold uppercase tracking-wide text-blue-600'>Profile Activity</p>
+                <p className='mt-1 text-3xl font-bold text-blue-900'>{monthlyViews}</p>
+                <p className='text-sm text-blue-700'>people viewed your profile this month</p>
+                {listing.listing_tier === 'free' && (
+                  <p className='mt-2 text-xs text-blue-600'>
+                    0 could contact you.{' '}
+                    <a href={`/claim/${listing.id}?upgrade=true`} className='underline font-medium'>
+                      Upgrade to be reachable →
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Bio */}
-            {listing.bio && (
+            {isClaimed && listing.bio && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="font-serif font-bold text-gray-900 text-lg mb-3">About</h2>
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">{listing.bio}</p>
@@ -341,48 +373,59 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
             {/* Contact card */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-serif font-bold text-gray-900 mb-4">Contact</h2>
-              <div className="space-y-3">
-                {listing.phone && (
-                  <a
-                    href={`tel:${listing.phone}`}
-                    className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group"
-                  >
-                    <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
-                      <Phone size={16} className="text-teal-500" aria-label="Phone" />
-                    </div>
-                    <span>{formatPhone(listing.phone)}</span>
-                  </a>
-                )}
-                {listing.website && (
-                  <a
-                    href={listing.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group"
-                  >
-                    <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
-                      <Globe size={16} className="text-teal-500" aria-label="Website" />
-                    </div>
-                    <span className="truncate">Visit Website</span>
-                  </a>
-                )}
-                {listing.booking_url && (
-                  <a
-                    href={listing.booking_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors mt-2"
-                  >
-                    Book Appointment
-                  </a>
-                )}
-                {!listing.booking_url && !listing.phone && !listing.website && (
-                  <p className="text-sm text-gray-400 italic">
-                    Contact information not yet added.
-                    {listing.listing_tier === 'unclaimed' && ' Claim this listing to add yours.'}
+              {isClaimed ? (
+                <div className="space-y-3">
+                  {listing.phone && (
+                    <a
+                      href={`tel:${listing.phone}`}
+                      className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group"
+                    >
+                      <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
+                        <Phone size={16} className="text-teal-500" aria-label="Phone" />
+                      </div>
+                      <span>{formatPhone(listing.phone)}</span>
+                    </a>
+                  )}
+                  {listing.website && (
+                    <a
+                      href={listing.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group"
+                    >
+                      <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
+                        <Globe size={16} className="text-teal-500" aria-label="Website" />
+                      </div>
+                      <span className="truncate">Visit Website</span>
+                    </a>
+                  )}
+                  {listing.booking_url && (
+                    <a
+                      href={listing.booking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors mt-2"
+                    >
+                      Book Appointment
+                    </a>
+                  )}
+                  {!listing.booking_url && !listing.phone && !listing.website && (
+                    <p className="text-sm text-gray-400 italic">Contact information not yet added.</p>
+                  )}
+                </div>
+              ) : (
+                <div className='rounded-lg border border-gray-200 bg-gray-50 p-4 text-center'>
+                  <p className='text-sm text-gray-500'>
+                    Phone, website, and bio are only visible after this provider claims their listing.
                   </p>
-                )}
-              </div>
+                  <a
+                    href={`/claim/${listing.id}`}
+                    className='mt-2 inline-block text-sm font-medium text-blue-600 hover:underline'
+                  >
+                    Is this you? Claim your free profile →
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Location */}
