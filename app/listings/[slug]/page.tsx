@@ -42,8 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export async function generateStaticParams() {
   return []
 }
-export const dynamicParams = true
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 export default async function ListingDetailPage({ params, searchParams }: PageProps) {
   const { slug } = await params
@@ -510,3 +509,4 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
     </>
   )
 }
+
