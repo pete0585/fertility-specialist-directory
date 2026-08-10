@@ -84,8 +84,8 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
       ...(listing.zip && { postalCode: listing.zip }),
       addressCountry: 'US',
     },
-    ...(listing.phone && { telephone: listing.phone }),
-    ...(listing.website && { url: listing.website }),
+    ...(isClaimed && listing.phone ? { telephone: listing.phone } : {}),
+    ...(isClaimed && listing.website ? { url: listing.website } : {}),
     ...(listing.latitude && listing.longitude && {
       geo: {
         '@type': 'GeoCoordinates',
