@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title:
     'Fertility Specialist Directory — Find IVF Doctors & Reproductive Endocrinologists Near You',
   description:
-    'Find a fertility specialist who truly understands your journey. Search 1,000+ board-certified REIs, IVF doctors, and fertility clinics by location, specialty, and more.',
+    'Find a fertility specialist who truly understands your journey. Search 1,000+ board-certified REIs, IVF doctors, and fertility clinics near you.',
 }
 
 const CATEGORIES: { slug: string; label: string; providerType: ProviderType; icon: string; description: string }[] = [
