@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 export const metadata: Metadata = {
   title: "Best Fertility Specialist in Rochester, MN | Fertility Specialist Directory",
   description: "Find fertility specialist in Rochester, Minnesota. 9+ listed. Filter by city and compare providers.",
+  alternates: {
+    canonical: "/fertility-specialists/rochester-mn",
+  },
 }
 
 async function getListings() {
