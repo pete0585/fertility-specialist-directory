@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 export const metadata: Metadata = {
   title: "Best Fertility Specialist in Basking Ridge, NJ | Fertility Specialist Directory",
   description: "Find fertility specialist in Basking Ridge, New Jersey. 13+ listed. Filter by city and compare providers.",
+  alternates: {
+    canonical: "/fertility-specialists/basking-ridge-nj",
+  },
 }
 
 async function getListings() {

@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 export const metadata: Metadata = {
   title: "Best Fertility Specialist in Bryn Mawr, PA | Fertility Specialist Directory",
   description: "Find fertility specialist in Bryn Mawr, Pennsylvania. 8+ listed. Filter by city and compare providers.",
+  alternates: {
+    canonical: "/fertility-specialists/bryn-mawr-pa",
+  },
 }
 
 async function getListings() {

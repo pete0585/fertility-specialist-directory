@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 export const metadata: Metadata = {
   title: "Best Fertility Specialist in Cleveland, OH | Fertility Specialist Directory",
   description: "Find fertility specialist in Cleveland, Ohio. 13+ listed. Filter by city and compare providers.",
+  alternates: {
+    canonical: "/fertility-specialists/cleveland-oh",
+  },
 }
 
 async function getListings() {

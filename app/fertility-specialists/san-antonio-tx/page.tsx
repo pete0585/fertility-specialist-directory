@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server"
 export const metadata: Metadata = {
   title: "Best Fertility Specialist in San Antonio, TX | Fertility Specialist Directory",
   description: "Find fertility specialist in San Antonio, Texas. 9+ listed. Filter by city and compare providers.",
+  alternates: {
+    canonical: "/fertility-specialists/san-antonio-tx",
+  },
 }
 
 async function getListings() {
