@@ -1,3 +1,4 @@
+import EditorialLink from 'next/link'
 import type { Metadata } from 'next'
 import './globals.css'
 import Nav from '@/components/Nav'
@@ -49,7 +50,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-cream-50">
         <Nav />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">{children}<nav aria-label="Editorial guides" className="mx-auto max-w-7xl px-6 py-6"><EditorialLink href="/blog" className="underline underline-offset-4">Guides and articles</EditorialLink></nav></main>
         <Footer />
       </body>
     </html>
