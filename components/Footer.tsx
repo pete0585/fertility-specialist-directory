@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import NewsletterSignup from '@/components/NewsletterSignup'
 
 export default function Footer() {
   const year = new Date().getFullYear()
@@ -117,6 +118,11 @@ export default function Footer() {
               <a href="https://studiozerohq.com" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors">Studio Zero — AI Marketing Operators for Healthcare</a>
             </p>
           </div>
-        </footer>
+        
+      {/* Newsletter signup compact */}
+      <div className="mt-6 pt-6 border-t border-white/10">
+        <NewsletterSignup compact />
+      </div>
+  </footer>
   )
 }
