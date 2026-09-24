@@ -265,8 +265,7 @@ export default async function HomePage() {
             Are you a fertility specialist?
           </h2>
           <p className="text-gray-500 mb-8 max-w-xl mx-auto leading-relaxed">
-            Claim your free listing or add your practice to the directory. One new patient covers
-            your annual Premium subscription in the first consultation.
+            Claim your free listing or add your practice to the directory. One new patient covers your listing in the first consultation.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -285,7 +284,7 @@ export default async function HomePage() {
           <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-gray-400">
             <span>Free listing</span>
             <span>•</span>
-            <span>Premium from $299/year</span>
+            
             <span>•</span>
             <span>One patient pays for years of exposure</span>
           </div>
