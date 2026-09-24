@@ -1,222 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { CheckCircle, Mail, ArrowRight } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
 
-interface PageProps {
-  params: { id: string }
-  searchParams: { verified?: string; error?: string }
-}
-
-export default function ClaimPage({ params, searchParams }: PageProps) {
-  const { id } = params
-  const { verified, error: errorParam } = searchParams
-
-  const [step, setStep] = useState<'email' | 'sent' | 'upgrade'>(
-    verified === 'true' ? 'upgrade' : 'email'
-  )
+function ClaimForm() {
+  const { id } = useParams<{ id: string }>()
+  const token = useSearchParams().get('token')
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(errorParam ?? '')
-  const [monthlyViews, setMonthlyViews] = useState(0)
-
-  useEffect(() => {
-    if (step !== 'upgrade') return
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
-    supabase
-      .from('listing_views')
-      .select('*', { count: 'exact', head: true })
-      .eq('directory_slug', 'fertility-specialist')
-      .eq('listing_id', id)
-      .gte('viewed_at', monthStart)
-      .then(({ count }) => setMonthlyViews(count ?? 0))
-  }, [step, id])
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setError('')
-    setLoading(true)
+  const [phone, setPhone] = useState('')
+  const [verified, setVerified] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  async function submit(path: string, body: object, success: string) {
+    setBusy(true); setError(''); setMessage('')
     try {
-      const res = await fetch('/api/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listingId: id, email: email.trim() }),
-      })
-      const body = await res.json()
-      if (!res.ok) throw new Error(body.error ?? 'Something went wrong')
-      setStep('sent')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send claim email')
-    } finally {
-      setLoading(false)
-    }
+      const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await response.json()
+      if (!response.ok || !data.success) throw new Error(data.error || 'The request was not completed.')
+      if (path.endsWith('/verify')) {
+        setVerified(true)
+        window.history.replaceState(null, '', `/claim/${id}`)
+      }
+      setMessage(success)
+    } catch (e) { setError(e instanceof Error ? e.message : 'The request failed. Please retry.') }
+    finally { setBusy(false) }
   }
-
-  if (step === 'upgrade') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16">
-        <div className="bg-white rounded-3xl border border-teal-200 shadow-lg p-10">
-          <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CheckCircle size={32} className="text-teal-500" />
-          </div>
-          <h1 className="text-3xl font-serif font-bold text-gray-900 mb-3 text-center">
-            Listing Claimed!
-          </h1>
-
-          <div className='text-center mb-6'>
-            <div className='text-5xl font-bold text-gray-900'>{monthlyViews}</div>
-            <div className='text-gray-500 mt-1'>people viewed your profile this month</div>
-            <div className='mt-3 text-red-600 font-semibold'>
-              0 could contact you — your phone and website are hidden
-            </div>
-          </div>
-
-          <div className='space-y-3 mb-6 text-left'>
-            {[
-              ['Your phone number visible to searchers', 'They can call you directly from your listing'],
-              ['Your website linked', 'Drive traffic to your practice site'],
-              ['Your full bio displayed', 'Build trust before they reach out'],
-              ['Verified badge', 'Stand out from unclaimed profiles'],
-            ].map(([title, sub]) => (
-              <div key={title} className='flex items-start gap-3'>
-                <span className='text-green-500 text-lg leading-tight'>✓</span>
-                <div>
-                  <div className='font-medium text-gray-900'>{title}</div>
-                  <div className='text-sm text-gray-500'>{sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-3 mb-6">
-            <a
-              href={`/api/checkout?listing_id=${id}&tier=premium`}
-              className="block w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-xl transition-colors text-center"
-            >
-              Upgrade to Premium — $499/year
-            </a>
-            <a
-              href={`/api/checkout?listing_id=${id}&tier=featured`}
-              className="block w-full bg-gold-400 hover:bg-gold-500 text-white font-semibold py-3 rounded-xl transition-colors text-center"
-            >
-              Upgrade to Featured — $999/year
-            </a>
-          </div>
-
-        {/* Studio Zero upsell */}
-        <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 mb-6">
-          <h2 className="text-base font-semibold text-blue-900 mb-1">
-            Want to attract more patients?
-          </h2>
-          <p className="text-sm text-blue-700 mb-3">
-            Studio Zero helps healthcare providers grow their practice with AI-powered marketing — content, SEO, and visibility that compounds over time.
-          </p>
-          <a
-            href="https://studiozerohq.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block text-sm font-medium text-blue-700 underline hover:opacity-80"
-          >
-            Learn more at Studio Zero →
-          </a>
-        </div>
-
-          <Link
-            href={`/listings/${id}`}
-            className="block text-sm text-teal-500 hover:text-teal-600 font-medium text-center"
-          >
-            View my listing →
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  if (step === 'sent') {
-    return (
-      <div className="max-w-xl mx-auto px-4 sm:px-6 py-16 text-center">
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-lg p-10">
-          <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <Mail size={32} className="text-teal-500" />
-          </div>
-          <h1 className="text-2xl font-serif font-bold text-gray-900 mb-3">
-            Check Your Email
-          </h1>
-          <p className="text-gray-500 leading-relaxed">
-            We sent a verification link to <strong className="text-gray-700">{email}</strong>.
-            Click the link in that email to complete your claim. The link expires in 72 hours.
-          </p>
-          <p className="text-xs text-gray-400 mt-5">
-            Can&apos;t find it? Check your spam folder or{' '}
-            <button
-              onClick={() => setStep('email')}
-              className="text-teal-500 underline hover:text-teal-600"
-            >
-              try again
-            </button>
-            .
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 py-16">
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-lg p-8">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 mb-2">
-          Claim Your Listing
-        </h1>
-        <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-          Enter your professional email to verify and claim this listing. We&apos;ll send you a
-          secure link — no password needed.
-        </p>
-
-        {error && (
-          <div className="bg-coral-50 border border-coral-200 rounded-lg px-4 py-3 text-sm text-coral-600 mb-4">
-            {error === 'invalid-or-expired-token'
-              ? 'This verification link has expired or is invalid. Please request a new one.'
-              : error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Professional Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@yourclinic.com"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-          >
-            {loading ? 'Sending...' : 'Send Verification Link'}
-            {!loading && <ArrowRight size={16} aria-label="Send" />}
-          </button>
-        </form>
-
-        <p className="text-xs text-gray-400 text-center mt-5">
-          By claiming this listing you confirm you are the listed practitioner or an authorized
-          representative of their practice.
-        </p>
-      </div>
-    </div>
-  )
+  return <main className="mx-auto max-w-lg px-6 py-16">
+    <h1 className="text-3xl font-bold mb-4">{verified ? 'Manage your listing' : 'Claim your listing'}</h1>
+    <p className="mb-6">Verify the contact email already recorded for your listing. If that email is missing or outdated, contact directory support for an ownership review.</p>
+    {error && <p role="alert" className="rounded border border-red-300 bg-red-50 text-red-900 p-4 mb-4">{error}</p>}
+    {message && <p role="status" className="rounded border border-green-300 bg-green-50 text-green-900 p-4 mb-4">{message}</p>}
+    {verified ? <form className="space-y-4" onSubmit={e => { e.preventDefault(); void submit('/api/claim/phone', { listingId: id, phone }, 'Phone number saved and verified.') }}>
+      <label className="block">Public phone number<input className="block w-full border rounded p-3 mt-2" type="tel" required maxLength={40} value={phone} onChange={e => setPhone(e.target.value)} /></label>
+      <button disabled={busy} className="rounded bg-slate-900 text-white px-5 py-3 disabled:opacity-50">{busy ? 'Saving…' : 'Save phone number'}</button>
+    </form> : token ? <button disabled={busy} className="rounded bg-slate-900 text-white px-5 py-3 disabled:opacity-50" onClick={() => void submit('/api/claim/verify', { listingId: id, token }, 'Ownership verified. You can now update your phone number.')}>{busy ? 'Verifying…' : 'Confirm ownership'}</button> : <form className="space-y-4" onSubmit={e => { e.preventDefault(); void submit('/api/claim', { listingId: id, email }, 'Verification email accepted. Check your inbox for the confirmation link.') }}>
+      <label className="block">Listing contact email<input className="block w-full border rounded p-3 mt-2" type="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>
+      <button disabled={busy} className="rounded bg-slate-900 text-white px-5 py-3 disabled:opacity-50">{busy ? 'Requesting…' : 'Send verification email'}</button>
+    </form>}
+    <Link className="block mt-8 underline" href="/">Return to directory</Link>
+  </main>
 }
 
+export default function ClaimPage() { return <Suspense fallback={<p className="p-8">Loading claim…</p>}><ClaimForm /></Suspense> }
