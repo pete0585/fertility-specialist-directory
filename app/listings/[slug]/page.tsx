@@ -8,7 +8,6 @@ import {
 import { getListingBySlug, getAllListingSlugs } from '@/lib/data'
 import { PROVIDER_TYPE_LABELS } from '@/lib/types'
 import { formatPhone } from '@/lib/utils'
-import { createCheckoutSession } from './actions'
 import { ViewTracker } from '@/components/ViewTracker'
 import { createServiceClient } from '@/lib/supabase/server'
 
@@ -95,10 +94,6 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
     }),
   }
 
-  async function handleUpgrade(listingId: string, tier: string) {
-    'use server'
-    await createCheckoutSession(listingId, tier as 'premium' | 'featured' | 'clinic')
-  }
 
   return (
     <>
@@ -453,41 +448,6 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
             </div>
 
             {/* Upgrade CTA for free/unclaimed */}
-            {(listing.listing_tier === 'unclaimed' || listing.listing_tier === 'free') && (
-              <div className="bg-gradient-to-br from-teal-600 to-teal-500 rounded-2xl p-5 text-white">
-                <h3 className="font-serif font-bold text-lg mb-2">Upgrade Your Listing</h3>
-                <p className="text-teal-100 text-sm mb-4 leading-relaxed">
-                  One new IVF patient is worth $15,000–50,000. A Premium listing pays for
-                  itself in the first consultation.
-                </p>
-                <div className="space-y-2">
-                  <form action={handleUpgrade.bind(null, listing.id, 'premium')}>
-                    <button
-                      type="submit"
-                      className="w-full bg-white text-teal-600 font-semibold py-2 rounded-lg text-sm hover:bg-cream-50 transition-colors"
-                    >
-                      Premium — $299/year
-                    </button>
-                  </form>
-                  <form action={handleUpgrade.bind(null, listing.id, 'featured')}>
-                    <button
-                      type="submit"
-                      className="w-full bg-gold-400 hover:bg-gold-500 text-white font-semibold py-2 rounded-lg text-sm transition-colors"
-                    >
-                      Featured — $499/year
-                    </button>
-                  </form>
-                  <form action={handleUpgrade.bind(null, listing.id, 'clinic')}>
-                    <button
-                      type="submit"
-                      className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2 rounded-lg text-sm transition-colors"
-                    >
-                      Clinic — $799/year
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
 
             {/* Languages */}
             {(listing.languages_spoken ?? []).length > 0 &&
@@ -505,8 +465,19 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
               )}
           </aside>
         </div>
+      {/* Studio Zero provider callout */}
+      <div className="mt-8 rounded-xl bg-gray-50 border border-gray-200 p-5">
+        <p className="text-sm text-gray-600">
+          <span className="font-semibold text-gray-800">Are you a provider listed here?</span>{' '}
+          <a href={`/claim/${listing.id}`} className="underline hover:opacity-80">Claim your free listing</a>
+          {' '}to add your contact details and bio.{' '}
+          <a href="https://studiozerohq.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">Studio Zero</a>
+          {' '}helps healthcare providers grow their practice with AI-powered marketing.
+        </p>
+      </div>
       </div>
     </>
   )
 }
+
 
