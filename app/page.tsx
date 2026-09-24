@@ -77,14 +77,22 @@ export default async function HomePage() {
               {displayCount}+ Verified Specialists
             </p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold leading-tight mb-6">
-              Find a fertility doctor who{' '}
-              <span className="text-gold-300">actually gets it</span>
-            </h1>
+            Find trusted fertility specialists near you
+          </h1>
             <p className="text-teal-50 text-lg sm:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
-              The only directory built around individual fertility specialists — not just clinic
-              brands. Reproductive endocrinologists, IVF doctors, and fertility-adjacent providers,
-              all in one place.
-            </p>
+            Browse verified fertility specialists and reproductive endocrinologists by location and specialty — and connect directly. Free, always.
+          </p>
+          <p className="text-sm text-gray-500 mt-4">
+            Are you a fertility specialist?{' '}
+            <a
+              href="https://studiozerohq.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:opacity-80"
+            >
+              List your practice free →
+            </a>
+          </p>
             <SearchBar size="hero" />
             <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-teal-100">
               <span className="flex items-center gap-1.5">
