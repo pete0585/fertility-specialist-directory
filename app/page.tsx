@@ -5,6 +5,7 @@ import SearchBar from '@/components/SearchBar'
 import ListingCard from '@/components/ListingCard'
 import { getFeaturedListings, getRecentListings, getTotalListingCount } from '@/lib/data'
 import { PROVIDER_TYPE_LABELS, type ProviderType } from '@/lib/types'
+import NewsletterSignup from '@/components/NewsletterSignup'
 
 export const metadata: Metadata = {
   title:
