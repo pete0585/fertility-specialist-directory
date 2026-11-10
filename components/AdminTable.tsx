@@ -130,7 +130,7 @@ export default function AdminTable({ listings: initial }: AdminTableProps) {
                   )}
                   {listing.website && (
                     <a
-                      href={listing.website}
+                      data-directory-action="website_click" href={listing.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-teal-500"
