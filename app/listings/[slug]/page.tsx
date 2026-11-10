@@ -267,13 +267,13 @@ export default async function ListingDetailPage({ params, searchParams }: PagePr
                       </div>
                       <span>{formatPhone(listing.phone)}</span>
                     </a>)}
-                  {listing.website && (<a href={listing.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group">
+                  {listing.website && (<a data-directory-action="website_click" href={listing.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-700 hover:text-teal-600 group">
                       <div className="w-9 h-9 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-teal-100 transition-colors">
                         <Globe size={16} className="text-teal-500" aria-label="Website"/>
                       </div>
                       <span className="truncate">Visit Website</span>
                     </a>)}
-                  {listing.booking_url && (<a href={listing.booking_url} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors mt-2">
+                  {listing.booking_url && (<a data-directory-action="booking_click" href={listing.booking_url} target="_blank" rel="noopener noreferrer" className="block w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors mt-2">
                       Book Appointment
                     </a>)}
                   {!listing.booking_url && !listing.phone && !listing.website && (<p className="text-sm text-gray-400 italic">Contact information not yet added.</p>)}
